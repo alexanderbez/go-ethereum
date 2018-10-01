@@ -23,13 +23,13 @@ import (
 )
 
 type account struct {
-	stateObject *stateObject
+	stateObject *StateObject
 	nstart      uint64
 	nonces      []bool
 }
 
 type ManagedState struct {
-	*StateDB
+	*CommitStateDB
 
 	mu sync.RWMutex
 
@@ -37,18 +37,18 @@ type ManagedState struct {
 }
 
 // ManagedState returns a new managed state with the statedb as it's backing layer
-func ManageState(statedb *StateDB) *ManagedState {
+func ManageState(statedb *CommitStateDB) *ManagedState {
 	return &ManagedState{
-		StateDB:  statedb.Copy(),
-		accounts: make(map[common.Address]*account),
+		CommitStateDB: statedb.Copy().(*CommitStateDB),
+		accounts:      make(map[common.Address]*account),
 	}
 }
 
 // SetState sets the backing layer of the managed state
-func (ms *ManagedState) SetState(statedb *StateDB) {
+func (ms *ManagedState) SetState(statedb *CommitStateDB) {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
-	ms.StateDB = statedb
+	ms.CommitStateDB = statedb
 }
 
 // RemoveNonce removed the nonce from the managed state and all future pending nonces
@@ -93,7 +93,7 @@ func (ms *ManagedState) GetNonce(addr common.Address) uint64 {
 		account := ms.getAccount(addr)
 		return uint64(len(account.nonces)) + account.nstart
 	} else {
-		return ms.StateDB.GetNonce(addr)
+		return ms.CommitStateDB.GetNonce(addr)
 	}
 }
 
@@ -128,7 +128,7 @@ func (ms *ManagedState) getAccount(addr common.Address) *account {
 	} else {
 		// Always make sure the state account nonce isn't actually higher
 		// than the tracked one.
-		so := ms.StateDB.getStateObject(addr)
+		so := ms.CommitStateDB.getStateObject(addr)
 		if so != nil && uint64(len(account.nonces))+account.nstart < so.Nonce() {
 			ms.accounts[addr] = newAccount(so)
 		}
@@ -138,6 +138,6 @@ func (ms *ManagedState) getAccount(addr common.Address) *account {
 	return ms.accounts[addr]
 }
 
-func newAccount(so *stateObject) *account {
+func newAccount(so *StateObject) *account {
 	return &account{so, so.Nonce(), nil}
 }
