@@ -97,7 +97,7 @@ type (
 		ForEachStorage(common.Address, func(common.Hash, common.Hash) bool)
 
 		Copy() StateDB
-		GetOrNewStateObject(addr common.Address) *StateObject
+		GetOrNewStateObject(addr common.Address) StateObject
 
 		IntermediateRoot(deleteEmptyObjects bool) common.Hash
 		Prepare(thash, bhash common.Hash, ti int)
@@ -116,7 +116,7 @@ type (
 		trie Trie
 
 		// This map holds 'live' objects, which will get modified while processing a state transition.
-		stateObjects      map[common.Address]*StateObject
+		stateObjects      map[common.Address]*stateObject
 		stateObjectsDirty map[common.Address]struct{}
 
 		// DB error.
@@ -155,7 +155,7 @@ func New(root common.Hash, db Database) (*CommitStateDB, error) {
 	return &CommitStateDB{
 		db:                db,
 		trie:              tr,
-		stateObjects:      make(map[common.Address]*StateObject),
+		stateObjects:      make(map[common.Address]*stateObject),
 		stateObjectsDirty: make(map[common.Address]struct{}),
 		logs:              make(map[common.Hash][]*types.Log),
 		preimages:         make(map[common.Hash][]byte),
@@ -182,7 +182,7 @@ func (csdb *CommitStateDB) Reset(root common.Hash) error {
 		return err
 	}
 	csdb.trie = tr
-	csdb.stateObjects = make(map[common.Address]*StateObject)
+	csdb.stateObjects = make(map[common.Address]*stateObject)
 	csdb.stateObjectsDirty = make(map[common.Address]struct{})
 	csdb.thash = common.Hash{}
 	csdb.bhash = common.Hash{}
@@ -426,7 +426,7 @@ func (csdb *CommitStateDB) Suicide(addr common.Address) bool {
 //
 
 // updateStateObject writes the given object to the trie.
-func (csdb *CommitStateDB) updateStateObject(stateObject *StateObject) {
+func (csdb *CommitStateDB) updateStateObject(stateObject *stateObject) {
 	addr := stateObject.Address()
 	data, err := rlp.EncodeToBytes(stateObject)
 	if err != nil {
@@ -436,14 +436,14 @@ func (csdb *CommitStateDB) updateStateObject(stateObject *StateObject) {
 }
 
 // deleteStateObject removes the given object from the state trie.
-func (csdb *CommitStateDB) deleteStateObject(stateObject *StateObject) {
+func (csdb *CommitStateDB) deleteStateObject(stateObject *stateObject) {
 	stateObject.deleted = true
 	addr := stateObject.Address()
 	csdb.setError(csdb.trie.TryDelete(addr[:]))
 }
 
 // Retrieve a state object given by the address. Returns nil if not found.
-func (csdb *CommitStateDB) getStateObject(addr common.Address) (stateObject *StateObject) {
+func (csdb *CommitStateDB) getStateObject(addr common.Address) (stateObject *stateObject) {
 	// Prefer 'live' objects.
 	if obj := csdb.stateObjects[addr]; obj != nil {
 		if obj.deleted {
@@ -469,12 +469,12 @@ func (csdb *CommitStateDB) getStateObject(addr common.Address) (stateObject *Sta
 	return obj
 }
 
-func (csdb *CommitStateDB) setStateObject(object *StateObject) {
+func (csdb *CommitStateDB) setStateObject(object *stateObject) {
 	csdb.stateObjects[object.Address()] = object
 }
 
 // Retrieve a state object or create a new state object if nil.
-func (csdb *CommitStateDB) GetOrNewStateObject(addr common.Address) *StateObject {
+func (csdb *CommitStateDB) GetOrNewStateObject(addr common.Address) StateObject {
 	stateObject := csdb.getStateObject(addr)
 	if stateObject == nil || stateObject.deleted {
 		stateObject, _ = csdb.createObject(addr)
@@ -484,7 +484,7 @@ func (csdb *CommitStateDB) GetOrNewStateObject(addr common.Address) *StateObject
 
 // createObject creates a new state object. If there is an existing account with
 // the given address, it is overwritten and returned as the second return value.
-func (csdb *CommitStateDB) createObject(addr common.Address) (newobj, prev *StateObject) {
+func (csdb *CommitStateDB) createObject(addr common.Address) (newobj, prev *stateObject) {
 	prev = csdb.getStateObject(addr)
 	newobj = newObject(csdb, addr, Account{})
 	newobj.setNonce(0) // sets the object to dirty
@@ -540,7 +540,7 @@ func (csdb *CommitStateDB) Copy() StateDB {
 	state := &CommitStateDB{
 		db:                csdb.db,
 		trie:              csdb.db.CopyTrie(csdb.trie),
-		stateObjects:      make(map[common.Address]*StateObject, len(csdb.journal.dirties)),
+		stateObjects:      make(map[common.Address]*stateObject, len(csdb.journal.dirties)),
 		stateObjectsDirty: make(map[common.Address]struct{}, len(csdb.journal.dirties)),
 		refund:            csdb.refund,
 		logs:              make(map[common.Hash][]*types.Log, len(csdb.logs)),

@@ -24,6 +24,8 @@ import (
 )
 
 // StateDB is an EVM database for full state querying.
+//
+// TODO: REMOVE
 type StateDB interface {
 	CreateAccount(common.Address)
 
