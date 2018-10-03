@@ -63,8 +63,6 @@ type (
 		GetState(db Database, key common.Hash) common.Hash
 		SetState(db Database, key, value common.Hash)
 
-		CommitTrie(db Database) error
-
 		AddBalance(amount *big.Int)
 		SubBalance(amount *big.Int)
 		SetBalance(amount *big.Int)

@@ -82,7 +82,7 @@ func runCmd(ctx *cli.Context) error {
 	var (
 		tracer        vm.Tracer
 		debugLogger   *vm.StructLogger
-		statedb       *state.StateDB
+		statedb       state.StateDB
 		chainConfig   *params.ChainConfig
 		sender        = common.BytesToAddress([]byte("sender"))
 		receiver      = common.BytesToAddress([]byte("receiver"))

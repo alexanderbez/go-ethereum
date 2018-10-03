@@ -74,7 +74,7 @@ type BlockChain interface {
 	GetHeaderByHash(hash common.Hash) *types.Header
 	CurrentHeader() *types.Header
 	GetTd(hash common.Hash, number uint64) *big.Int
-	State() (*state.StateDB, error)
+	State() (state.StateDB, error)
 	InsertHeaderChain(chain []*types.Header, checkFreq int) (int, error)
 	Rollback(chain []common.Hash)
 	GetHeaderByNumber(number uint64) *types.Header
@@ -771,7 +771,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		// Gather state data until the fetch or network limits is reached
 		var (
 			lastBHash common.Hash
-			statedb   *state.StateDB
+			statedb   state.StateDB
 			root      common.Hash
 		)
 		reqCnt := len(req.Reqs)
@@ -1119,7 +1119,7 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 }
 
 // getAccount retrieves an account from the state based at root.
-func (pm *ProtocolManager) getAccount(statedb *state.StateDB, root, hash common.Hash) (state.Account, error) {
+func (pm *ProtocolManager) getAccount(statedb state.StateDB, root, hash common.Hash) (state.Account, error) {
 	trie, err := trie.New(root, statedb.Database().TrieDB())
 	if err != nil {
 		return state.Account{}, err

@@ -211,7 +211,7 @@ func (bc *LightChain) Genesis() *types.Block {
 }
 
 // State returns a new mutable state based on the current HEAD block.
-func (bc *LightChain) State() (*state.StateDB, error) {
+func (bc *LightChain) State() (state.StateDB, error) {
 	return nil, errors.New("not implemented, needs client/server interface split")
 }
 

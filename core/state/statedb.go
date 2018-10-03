@@ -104,6 +104,11 @@ type (
 
 		Commit(deleteEmptyObjects bool) (root common.Hash, err error)
 		Finalize(deleteEmptyObjects bool)
+
+		Error() error
+		RawDump() Dump
+		Reset(root common.Hash) error
+		StorageTrie(addr common.Address) Trie
 	}
 
 	// StateDBs within the ethereum protocol are used to store anything
