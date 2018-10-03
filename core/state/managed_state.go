@@ -37,7 +37,7 @@ type ManagedState struct {
 }
 
 // ManagedState returns a new managed state with the statedb as it's backing layer
-func ManageState(statedb StateDB) *ManagedState {
+func ManageState(statedb *CommitStateDB) *ManagedState {
 	return &ManagedState{
 		CommitStateDB: statedb.Copy().(*CommitStateDB),
 		accounts:      make(map[common.Address]*account),

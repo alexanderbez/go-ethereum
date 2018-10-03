@@ -62,6 +62,10 @@ type (
 	StateObject interface {
 		GetState(db Database, key common.Hash) common.Hash
 		SetState(db Database, key, value common.Hash)
+		Code(db Database) []byte
+
+		SetCode(codeHash common.Hash, code []byte)
+		CodeHash() []byte
 
 		AddBalance(amount *big.Int)
 		SubBalance(amount *big.Int)
@@ -71,13 +75,8 @@ type (
 		ReturnGas(gas *big.Int)
 		Address() common.Address
 
-		SetCode(codeHash common.Hash, code []byte)
-
 		SetNonce(nonce uint64)
 		Nonce() uint64
-
-		Code(db Database) []byte
-		CodeHash() []byte
 	}
 
 	// stateObject represents an Ethereum account which is being modified.

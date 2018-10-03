@@ -34,9 +34,9 @@ import (
 // interface restrictions
 var _ StateDB = (*CommitStateDB)(nil)
 
-type revision struct {
-	id           int
-	journalIndex int
+type Revision struct {
+	ID           int
+	JournalIndex int
 }
 
 var (
@@ -144,7 +144,7 @@ type (
 		// Journal of state modifications. This is the backbone of
 		// Snapshot and RevertToSnapshot.
 		journal        *journal
-		validRevisions []revision
+		validRevisions []Revision
 		nextRevisionId int
 
 		lock sync.Mutex
@@ -591,7 +591,7 @@ func (csdb *CommitStateDB) Copy() StateDB {
 func (csdb *CommitStateDB) Snapshot() int {
 	id := csdb.nextRevisionId
 	csdb.nextRevisionId++
-	csdb.validRevisions = append(csdb.validRevisions, revision{id, csdb.journal.length()})
+	csdb.validRevisions = append(csdb.validRevisions, Revision{id, csdb.journal.length()})
 	return id
 }
 
@@ -599,12 +599,14 @@ func (csdb *CommitStateDB) Snapshot() int {
 func (csdb *CommitStateDB) RevertToSnapshot(revid int) {
 	// Find the snapshot in the stack of valid snapshots.
 	idx := sort.Search(len(csdb.validRevisions), func(i int) bool {
-		return csdb.validRevisions[i].id >= revid
+		return csdb.validRevisions[i].ID >= revid
 	})
-	if idx == len(csdb.validRevisions) || csdb.validRevisions[idx].id != revid {
+
+	if idx == len(csdb.validRevisions) || csdb.validRevisions[idx].ID != revid {
 		panic(fmt.Errorf("revision id %v cannot be reverted", revid))
 	}
-	snapshot := csdb.validRevisions[idx].journalIndex
+
+	snapshot := csdb.validRevisions[idx].JournalIndex
 
 	// Replay the journal to undo changes and remove invalidated snapshots
 	csdb.journal.revert(csdb, snapshot)
