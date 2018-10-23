@@ -269,6 +269,7 @@ func (csdb *CommitStateDB) Empty(addr common.Address) bool {
 // Retrieve the balance from the given address or 0 if object not found
 func (csdb *CommitStateDB) GetBalance(addr common.Address) *big.Int {
 	stateObject := csdb.getStateObject(addr)
+
 	if stateObject != nil {
 		return stateObject.Balance()
 	}
@@ -484,6 +485,7 @@ func (csdb *CommitStateDB) GetOrNewStateObject(addr common.Address) StateObject 
 	if stateObject == nil || stateObject.deleted {
 		stateObject, _ = csdb.createObject(addr)
 	}
+
 	return stateObject
 }
 

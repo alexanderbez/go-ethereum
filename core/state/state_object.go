@@ -60,10 +60,11 @@ func (self Storage) Copy() Storage {
 
 type (
 	StateObject interface {
+		GetCommittedState(db Database, key common.Hash) common.Hash
 		GetState(db Database, key common.Hash) common.Hash
 		SetState(db Database, key, value common.Hash)
-		Code(db Database) []byte
 
+		Code(db Database) []byte
 		SetCode(codeHash common.Hash, code []byte)
 		CodeHash() []byte
 
@@ -368,6 +369,7 @@ func (self *stateObject) SetCode(codeHash common.Hash, code []byte) {
 		prevhash: self.CodeHash(),
 		prevcode: prevcode,
 	})
+
 	self.setCode(codeHash, code)
 }
 
